@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسابقة قصة سيدنا يونس - متعددة اللاعبين</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 95vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+            font-weight: 900;
+        }
+        .connection-status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 0.9em;
+        }
+        .connection-status.connected { background: #d4edda; color: #155724; }
+        .connection-status.disconnected { background: #f8d7da; color: #721c24; }
+        .room-selection {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .room-selection h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-align: center;
+        }
+        .room-input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .room-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            text-align: center;
+            font-weight: 700;
+        }
+        .room-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .join-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+        .create-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .room-btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .room-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .room-code {
+            font-size: 1.8em;
+            font-weight: 900;
+            color: #667eea;
+            margin: 10px 0;
+            letter-spacing: 3px;
+        }
+        .admin-controls {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .admin-controls h3 { color: #856404; margin-bottom: 10px; font-size: 1.1em; }
+        .team-selection { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; }
+        .team-btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 900;
+        }
+        .team1-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .team1-btn::before { content: '🟣'; margin-left: 10px; font-size: 1.5em; }
+        .team2-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .team2-btn::before { content: '🔵'; margin-left: 10px; font-size: 1.5em; }
+        .team-btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .team-btn.wrong { background: #e74c3c !important; animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .scoreboard { display: flex; justify-content: space-around; margin-bottom: 20px; }
+        .score { text-align: center; }
+        .score-label { font-weight: 900; margin-bottom: 5px; font-size: 0.9em; }
+        .score-value { font-size: 1.5em; color: #667eea; font-weight: 900; }
+        .question-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        .question-number { color: #667eea; font-weight: 900; margin-bottom: 8px; }
+        .question-text {
+            font-size: 1.15em;
+            color: #333;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            font-weight: 700;
+        }
+        .answers { display: grid; gap: 10px; }
+        .answer-btn {
+            padding: 12px 20px;
+            font-size: 1.05em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: right;
+            position: relative;
+            padding-right: 45px;
+            font-weight: 700;
+        }
+        .answer-btn::before { content: '🟡'; position: absolute; right: 12px; font-size: 1.3em; }
+        .answer-btn:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+            transform: translateX(-5px);
+        }
+        .answer-btn.correct {
+            background: #2ecc71;
+            color: white;
+            border-color: #2ecc71;
+        }
+        .answer-btn.correct::before { content: '🟢'; font-size: 1.5em; }
+        .answer-btn.wrong {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+        .answer-btn.wrong::before { content: '🔴'; font-size: 1.5em; }
+        .answer-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+        .star {
+            position: fixed;
+            font-size: 3em;
+            animation: fall 3s linear;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        .hidden { display: none !important; }
+        .result-screen { text-align: center; padding: 40px; }
+        .result-screen h2 { font-size: 2.5em; color: #667eea; margin-bottom: 30px; }
+        .restart-btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 900;
+        }
+        .restart-btn:hover { transform: scale(1.05); }
+        .leave-room-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 900;
+            margin-top: 10px;
+        }
+        .waiting-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .players-count {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐋 مسابقة قصة سيدنا يونس عليه السلام 🐋</h1>
+        <div style="text-align: center; color: #000000; font-size: 1.1em; margin-bottom: 20px; font-weight: 900;">
+            من إعداد الأستاذ: جمال سويس
+        </div>
+
+        <div id="connectionStatus" class="connection-status disconnected">🔴 غير متصل</div>
+        
+        <div id="roomSelection" class="room-selection hidden">
+            <h2>انضم إلى غرفة المسابقة</h2>
+            <div class="room-input-group">
+                <input type="text" id="roomCodeInput" class="room-input" placeholder="أدخل رمز الغرفة" maxlength="6">
+                <button class="room-btn create-btn" onclick="createRoom()">إنشاء غرفة جديدة</button>
+            </div>
+            <button class="room-btn join-btn" onclick="joinRoom()">الانضمام للغرفة</button>
+        </div>
+
+        <div id="roomInfo" class="room-info hidden">
+            <div>رمز الغرفة:</div>
+            <div class="room-code" id="currentRoomCode">---</div>
+            <div class="players-count" id="playersCount">المتصلون: 0</div>
+            <button class="leave-room-btn" onclick="leaveRoom()">مغادرة الغرفة</button>
+        </div>
+
+        <div id="adminControls" class="admin-controls hidden">
+            <h3>⚙️ عناصر التحكم (أنت مدير الغرفة)</h3>
+            <button class="restart-btn" onclick="resetGame()" style="width: 100%;">إعادة تشغيل اللعبة</button>
+        </div>
+
+        <div id="waitingMessage" class="waiting-message hidden">⏳ في انتظار بدء المسابقة...</div>
+        
+        <div id="gameArea" class="hidden">
+            <div class="scoreboard">
+                <div class="score">
+                    <div class="score-label">⭐ الفريق الأول</div>
+                    <div class="score-value" id="score1">0</div>
+                </div>
+                <div class="score">
+                    <div class="score-label">⭐ الفريق الثاني</div>
+                    <div class="score-value" id="score2">0</div>
+                </div>
+            </div>
+            
+            <div id="teamSelection" class="team-selection hidden">
+                <button class="team-btn team1-btn" onclick="selectTeam(1)">اختر الفريق الأول</button>
+                <button class="team-btn team2-btn" onclick="selectTeam(2)">اختر الفريق الثاني</button>
+            </div>
+            
+            <div id="questionArea" class="hidden">
+                <div class="question-container">
+                    <div class="question-number" id="questionNumber"></div>
+                    <div class="question-text" id="questionText"></div>
+                    <div class="answers" id="answersContainer"></div>
+                </div>
+            </div>
+            
+            <div id="resultScreen" class="hidden result-screen">
+                <h2>انتهت المسابقة! 🎉</h2>
+                <div id="finalScores"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- 🔥 Firebase SDK - لا تحذف هذه الأسطر -->
+    <!-- ============================================ -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <script>
+        // ============================================
+        // 🔥 ضع إعدادات Firebase هنا
+        // ============================================
+        // احصل على هذه الإعدادات من: https://console.firebase.google.com
+        // Project Settings → Your apps → Web App → firebaseConfig
+        
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // ============================================
+        // الأسئلة
+        // ============================================
+        const questions = [
+            { question: "إلى أي قوم أرسل الله سيدنا يونس؟", answers: ["قوم نينوى", "قوم عاد", "قوم ثمود"], correct: 0 },
+            { question: "ماذا فعل سيدنا يونس عندما لم يؤمن قومه؟", answers: ["غادر القرية غاضباً", "بقي يدعوهم", "طلب العقاب لهم"], correct: 0 },
+            { question: "ما هي وسيلة النقل التي ركبها سيدنا يونس؟", answers: ["سفينة", "حصان", "جمل"], correct: 0 },
+            { question: "ماذا حدث للسفينة في البحر؟", answers: ["كادت أن تغرق", "وصلت بسلام", "انقلبت"], correct: 0 },
+            { question: "كيف اختاروا من سيلقى في البحر؟", answers: ["بالقرعة", "بالاختيار", "بالقوة"], correct: 0 },
+            { question: "ما الذي ابتلع سيدنا يونس؟", answers: ["الحوت", "السمكة الكبيرة", "التمساح"], correct: 0 },
+            { question: "أين بقي سيدنا يونس؟", answers: ["في بطن الحوت", "في الجزيرة", "في السفينة"], correct: 0 },
+            { question: "ماذا فعل سيدنا يونس في بطن الحوت؟", answers: ["دعا الله واستغفر", "نام", "بكى فقط"], correct: 0 },
+            { question: "ماذا حدث بعد دعاء سيدنا يونس؟", answers: ["ألقاه الحوت على الشاطئ", "بقي في بطنه", "مات في البحر"], correct: 0 },
+            { question: "ما الذي أنبته الله لحماية سيدنا يونس من الشمس؟", answers: ["شجرة اليقطين", "شجرة النخيل", "شجرة الزيتون"], correct: 0 },
+            { question: "لماذا غادر سيدنا يونس قومه دون إذن من الله؟", answers: ["لأنه يئس من إيمانهم", "لأنه خاف منهم", "لأنه أراد الراحة", "لأن الله أمره بذلك", "لأنه مرض"], correct: 0 },
+            { question: "عندما عاد يونس إلى قومه كيف وجدهم؟", answers: ["مؤمنين بالله", "كافرين ومستمرين في عنادهم", "قد هاجروا من المدينة", "يحاربون بعضهم", "بنوا معبداً جديداً"], correct: 0 },
+            { question: "ما هو الدعاء الذي دعا به سيدنا يونس في بطن الحوت؟", answers: ["لا إله إلا أنت سبحانك إني كنت من الظالمين", "ربنا آتنا في الدنيا حسنة", "اللهم اغفر لي", "يا رب ارحمني", "اللهم نجني من الظلمات"], correct: 0 },
+            { question: "كم من الوقت بقي سيدنا يونس في بطن الحوت؟", answers: ["لم يُحدد بدقة في القرآن", "يوم واحد", "ثلاثة أيام", "أسبوع كامل", "أربعين يوماً"], correct: 0 },
+            { question: "ما الصفة التي أطلقها الله على سيدنا يونس في القرآن؟", answers: ["ذا النون", "ذا الكفل", "الصديق", "الخليل", "كليم الله"], correct: 0 },
+            { question: "ما الحكمة من قصة سيدنا يونس؟", answers: ["الصبر والتوبة والعودة إلى الله", "قوة البحر", "أهمية السفن", "الخوف من الحيوانات", "ترك القوم الكافرين"], correct: 0 },
+            { question: "كم عدد الناس الذين آمنوا من قوم سيدنا يونس؟", answers: ["مائة ألف أو يزيدون", "ألف شخص", "عشرة آلاف", "خمسون ألف", "مليون شخص"], correct: 0 },
+            { question: "ماذا تعلمنا من موقف سيدنا يونس في بطن الحوت؟", answers: ["أن الله يستجيب للدعاء والاستغفار", "أن البحر خطير", "أن الحيتان كبيرة", "أن السفن تغرق", "أن الصيد مهنة صعبة"], correct: 0 },
+            { question: "لماذا سمي سيدنا يونس بـ 'ذي النون'؟", answers: ["لأن النون هو الحوت وقد ابتلعه الحوت", "لأنه كان يصطاد السمك", "لأنه عاش في مدينة النون", "لأنه كان يكتب بحرف النون"], correct: 0 },
+            { question: "ما الذي جعل الله ينجي سيدنا يونس من بطن الحوت؟", answers: ["تسبيحه واستغفاره وتوبته", "قوته البدنية", "مساعدة الملائكة", "دعاء قومه", "صبره فقط"], correct: 0 }
+        ];
+
+        // ============================================
+        // كود اللعبة
+        // ============================================
+        let db, currentRoomCode = null, isAdmin = false, playersCountRef = null;
+
+        // تهيئة Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            updateConnectionStatus(true);
+            document.getElementById('roomSelection').classList.remove('hidden');
+        } catch (error) {
+            console.error('خطأ Firebase:', error);
+            updateConnectionStatus(false);
+        }
+
+        firebase.database().ref('.info/connected').on('value', (snap) => {
+            updateConnectionStatus(snap.val() === true);
+        });
+
+        function updateConnectionStatus(connected) {
+            const el = document.getElementById('connectionStatus');
+            el.className = 'connection-status ' + (connected ? 'connected' : 'disconnected');
+            el.innerHTML = connected ? '🟢 متصل' : '🔴 غير متصل';
+        }
+
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        async function createRoom() {
+            const roomCode = generateRoomCode();
+            await db.ref('rooms/' + roomCode).set({
+                currentQuestion: 0, scores: [0, 0], currentTeam: 0, 
+                answered: false, gameStarted: true,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            });
+            currentRoomCode = roomCode;
+            isAdmin = true;
+            joinRoomSuccess();
+        }
+
+        async function joinRoom() {
+            const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            if (!code) return alert('أدخل رمز الغرفة');
+            const snap = await db.ref('rooms/' + code).once('value');
+            if (snap.exists()) {
+                currentRoomCode = code;
+                isAdmin = false;
+                joinRoomSuccess();
+            } else {
+                alert('الغرفة غير موجودة');
+            }
+        }
+
+        function joinRoomSuccess() {
+            document.getElementById('roomSelection').classList.add('hidden');
+            document.getElementById('roomInfo').classList.remove('hidden');
+            document.getElementById('currentRoomCode').textContent = currentRoomCode;
+            if (isAdmin) {
+                document.getElementById('adminControls').classList.remove('hidden');
+                document.getElementById('gameArea').classList.remove('hidden');
+                document.getElementById('teamSelection').classList.remove('hidden');
+            } else {
+                document.getElementById('waitingMessage').classList.remove('hidden');
+            }
+            listenToGameUpdates();
+            monitorPlayersCount();
+        }
+
+        function monitorPlayersCount() {
+            playersCountRef = db.ref('rooms/' + currentRoomCode + '/players');
+            const playerRef = playersCountRef.push();
+            playerRef.set({ joinedAt: firebase.database.ServerValue.TIMESTAMP });
+            playerRef.onDisconnect().remove();
+            playersCountRef.on('value', (snap) => {
+                document.getElementById('playersCount').textContent = `المتصلون: ${snap.numChildren()}`;
+            });
+        }
+
+        function listenToGameUpdates() {
+            db.ref('rooms/' + currentRoomCode).on('value', (snap) => {
+                const data = snap.val();
+                if (!data) return;
+                document.getElementById('score1').textContent = data.scores[0];
+                document.getElementById('score2').textContent = data.scores[1];
+                if (data.gameStarted) {
+                    document.getElementById('gameArea').classList.remove('hidden');
+                    document.getElementById('waitingMessage').classList.add('hidden');
+                    if (data.currentQuestion >= questions.length) {
+                        showResults(data);
+                    } else {
+                        if (data.currentTeam === 0) {
+                            document.getElementById('teamSelection').classList.remove('hidden');
+                            document.getElementById('questionArea').classList.add('hidden');
+                            document.getElementById('resultScreen').classList.add('hidden');
+                        } else {
+                            showQuestion(data);
+                        }
+                    }
+                }
+            });
+        }
+
+        async function selectTeam(team) {
+            if (!isAdmin) return;
+            await db.ref('rooms/' + currentRoomCode).update({ currentTeam: team, answered: false });
+        }
+
+        function showQuestion(data) {
+            const q = questions[data.currentQuestion];
+            document.getElementById('teamSelection').classList.add('hidden');
+            document.getElementById('questionArea').classList.remove('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('questionNumber').textContent = `السؤال ${data.currentQuestion + 1} من ${questions.length}`;
+            document.getElementById('questionText').textContent = q.question;
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = '';
+            const shuffled = shuffleArray(q.answers.map((a, i) => ({text: a, idx: i})));
+            shuffled.forEach((item) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = item.text;
+                btn.onclick = () => checkAnswer(item.idx === q.correct, btn, data);
+                if (data.answered) {
+                    btn.disabled = true;
+                    if (item.idx === q.correct) btn.classList.add('correct');
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        async function checkAnswer(correct, btn, data) {
+            if (data.answered || !isAdmin) return;
+            await db.ref('rooms/' + currentRoomCode).update({ answered: true });
+            document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+            if (correct) {
+                btn.classList.add('correct');
+                const scores = [...data.scores];
+                scores[data.currentTeam - 1]++;
+                await db.ref('rooms/' + currentRoomCode).update({ scores });
+                createStars();
+            } else {
+                btn.classList.add('wrong');
+            }
+            setTimeout(async () => {
+                await db.ref('rooms/' + currentRoomCode).update({
+                    currentQuestion: data.currentQuestion + 1,
+                    currentTeam: 0,
+                    answered: false
+                });
+            }, 2000);
+        }
+
+        function shuffleArray(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function createStars() {
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.textContent = '⭐';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    document.body.appendChild(star);
+                    setTimeout(() => star.remove(), 3000);
+                }, i * 50);
+            }
+        }
+
+        function showResults(data) {
+            document.getElementById('teamSelection').classList.add('hidden');
+            document.getElementById('questionArea').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            const scores = data.scores;
+            let winner = '', color = '';
+            if (scores[0] > scores[1]) {
+                winner = '🏆 الفريق الأول هو الفائز! 🏆';
+                color = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+            } else if (scores[1] > scores[0]) {
+                winner = '🏆 الفريق الثاني هو الفائز! 🏆';
+                color = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+            } else {
+                winner = '🤝 تعادل! كلا الفريقين رائع! 🤝';
+                color = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+            document.getElementById('finalScores').innerHTML = `
+                <div style="background: ${color}; color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px;">
+                    <h3 style="font-size: 2em;">${winner}</h3>
+                </div>
+                <div style="display: flex; gap: 20px; justify-content: space-around;">
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 15px; flex: 1;">
+                        <div style="font-size: 1.3em;">الفريق الأول</div>
+                        <div style="font-size: 3em; font-weight: bold;">${scores[0]}</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 15px; flex: 1;">
+                        <div style="font-size: 1.3em;">الفريق الثاني</div>
+                        <div style="font-size: 3em; font-weight: bold;">${scores[1]}</div>
+                    </div>
+                </div>
+            `;
+            createStars();
+        }
+
+        async function resetGame() {
+            if (!isAdmin) return;
+            await db.ref('rooms/' + currentRoomCode).update({
+                currentQuestion: 0, scores: [0, 0], currentTeam: 0, answered: false, gameStarted: true
+            });
+        }
+
+        function leaveRoom() {
+            if (playersCountRef) playersCountRef.off();
+            if (currentRoomCode) db.ref('rooms/' + currentRoomCode).off();
+            location.reload();
+        }
+    </script>
+</body>
+</html>
